@@ -104,12 +104,69 @@ class systemadmin extends Controller {
                 'function' => "Add"
             ]);
         }
-
-
-
     }
 
     function list() {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            // Pagination
+            $limit = 10;
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $offset = ($page - 1) * $limit;
+
+            // Retrieve all accounts
+            $accounts = [];
+            $all = $this->model("AdminModel");
+            $totalAccounts = $all->getTotalAdmin();
+            $nextRow = $all->getAllAdminId($limit, $offset);
+            $ids = [];
+
+            if (isset($_GET['account'])) {
+                // Activate admin table
+                if ($_GET['account'] === 'active') {
+                    $nextRow = $all->getFlaggedAdminId(0, $limit, $offset);
+                    $totalAccounts = $all->getTotalFilteredAdmin(0);
+                }
+                // Deleted admin table
+                elseif ($_GET['account'] === 'deleted') {
+                    $nextRow = $all->getFlaggedAdminId(1, $limit, $offset);
+                    $totalAccounts = $all->getTotalFilteredAdmin(1);
+                }
+            }
+
+            // Get account info
+            while ($row = mysqli_fetch_assoc($nextRow)) {
+                $ids[] = $row['id'];
+            }
+            $totalID = count($ids);
+
+            foreach ($ids as $id) {
+                $accounts[$id] = [];
+                $person = $this->model("AdminModel");
+                $row = $person->getAdminDisplayInfo($id);
+                $accounts[$id]['id'] = $row['id'];
+                $accounts[$id]['name'] = $row['name'];
+                $accounts[$id]['email'] = $row['email'];
+                $accounts[$id]['role'] = $row['role_type'];
+                $accounts[$id]['created_by'] = $person->getAdminName($row['ins_id'])['name'];
+                if (isset($person->getAdminName($row['upd_id'])['name'])) {
+                    $accounts[$id]['updated_by'] = $person->getAdminName($row['upd_id'])['name'];
+                }
+                $accounts[$id]['status'] = $row['del_flag'];
+            }
+
+            // Get total pages
+            $totalPages = ceil($totalAccounts / $limit);
+
+            // Display table list
+            $this->view ("Manage", array_merge([
+                'area' => "Admin",
+                'function' => "List",
+                'total' => $totalID,
+                'totalPages' => $totalPages
+            ], $accounts));
+
+        }
+
 
     }
 

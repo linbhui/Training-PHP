@@ -50,7 +50,7 @@
         </div>
 
         <div class="col-12 d-flex justify-content-between mt-3">
-            <a href="/system/admin" class="btn btn-secondary">Cancel</a>
+            <a href="/system/admin/list" class="btn btn-secondary">Cancel</a>
             <button type="submit" class="btn btn-primary">Create</button>
         </div>
     </form>

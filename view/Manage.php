@@ -12,12 +12,17 @@
 </head>
 <body class="p-4">
 <div class="container">
-    <h1 class="mb-4">
-        <a href="/system/admin" class="text-decoration-none text-dark">
-            <?php echo $data['area']; ?> Management
-        </a>
-    </h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            <a href="/system/admin" class="text-decoration-none text-dark">
+                <?php echo $data['area']; ?> Management
+            </a>
+        </h1>
 
+        <form action="/system/logout" method="get">
+            <button type="submit" class="btn btn-outline-danger btn-lg">Log Out</button>
+        </form>
+    </div>
 
     <div class="row g-2 mb-4 align-items-center">
         <div class="col-auto">
@@ -27,7 +32,9 @@
         </div>
 
         <div class="col-auto">
-            <button class="btn btn-primary" onclick="showContent('list')">View all </button>
+            <form action="/system/admin/list" method="get">
+                <button class="btn btn-primary" type="submit">View all</button>
+            </form>
         </div>
 
         <div class="col">
