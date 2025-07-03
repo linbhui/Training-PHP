@@ -25,7 +25,6 @@ class systemlogin extends Controller {
         }
         // Display errors
         if (!empty($errors)) {
-            echo "stop1";
             $_SESSION['errors'] = $errors;
             header("Location: /system/login");
             return;
@@ -37,7 +36,6 @@ class systemlogin extends Controller {
         $password = $_POST["password"];
 
         if ($row && password_verify($password, $row['password'])) {
-            echo "stop4";
             $_SESSION['admin_logged_in'] = true;
             $_SESSION['admin_email'] = $email;
             header("Location: /system/dashboard");

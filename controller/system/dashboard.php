@@ -1,6 +1,10 @@
 <?php
 class systemdashboard extends Controller {
     function index() {
+        if (!isset($_SESSION['admin_logged_in'])) {
+            header("Location: /system/login");
+            exit();
+        }
         $admin = $this->model("AdminModel");
         $role = mysqli_fetch_assoc($admin->getAdminRole($_SESSION['admin_email']))['role_type'];
         if ($role == 1) {

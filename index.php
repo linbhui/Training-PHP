@@ -2,7 +2,7 @@
 session_start();
 
 if (isset($_SESSION['last_regenerated'])) {
-    if (time() - $_SESSION['last_regenerated'] > 300) { // 5 minutes
+    if (time() - $_SESSION['last_regenerated'] > 300) {
         session_regenerate_id(true);
         $_SESSION['last_regenerated'] = time();
     }
