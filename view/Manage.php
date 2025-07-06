@@ -45,18 +45,23 @@
         </div>
     </div>
 
-    <div id="content-area">
-        <?php if(isset($data['function'])): ?>
-            <div id="content-page">
-                <?php require_once "./view/content/" . $data['function'] . ".php"; ?>
+    <div id="content-area" class="mt-4">
+        <?php if (isset($data['notif'])): ?>
+            <div id="message-notif"
+                 class="alert alert-<?= $data['action'] == 'Success' ? 'info' : 'danger' ?> text-center">
+                <?php require_once "./view/content/" . $data['notif'] . ".php"; ?>
             </div>
         <?php endif ?>
-        <?php if (isset($data['notif'])): ?>
-            <div id="message-notif">
-                <?= $data['notif'] ?>
+
+        <?php if (isset($data['function'])): ?>
+            <div id="content-page" class="card shadow-sm border-0">
+                <div class="card-body">
+                    <?php require_once "./view/content/" . $data['function'] . ".php"; ?>
+                </div>
             </div>
         <?php endif ?>
     </div>
+
 
 </div>
 
@@ -64,5 +69,6 @@
         integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
         crossorigin="anonymous">
 </script>
+
 </body>
 </html>

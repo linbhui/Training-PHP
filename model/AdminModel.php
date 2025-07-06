@@ -1,72 +1,65 @@
 <?php
-class AdminModel extends Database {
+require_once "GeneralModel.php";
+class AdminModel extends GeneralModel {
+
     public function getAdminPassword($email) {
-        $query = "SELECT password FROM admin WHERE email='" . $email . "'";
-        return mysqli_query($this->connection, $query);
+        return $this->fetchOneValue("s", "password", "admin", "email", $email);
     }
-
-    public function getAdminRole($email) {
-        $query = "SELECT role_type FROM admin WHERE email='" . $email . "'";
-        return mysqli_query($this->connection, $query);
-    }
-
     public function getAdminId($email) {
-        $query = "SELECT id FROM admin WHERE email='" . $email . "'";
-        return mysqli_query($this->connection, $query);
+        return (int) $this->fetchOneValue("s", "id", "admin", "email", $email);
     }
 
-    public function getAdminName($id) {
-        $query = "SELECT name FROM admin WHERE id='" . $id . "'";
-        $result = mysqli_query($this->connection, $query);
-        return mysqli_fetch_assoc($result);
-
+    public function checkExistAdminEmail($email) {
+        return $this->fetchOneRow("s", "admin", "email", $email);
     }
 
-    public function checkExistAdmin($email) {
-        $query = "SELECT * FROM admin WHERE email='" . $email . "'";
-        return mysqli_query($this->connection, $query);
+
+    public function getAdminInfo($id) {
+        return $this->fetchOneRow("i", "admin", "id", $id);
     }
 
-    public function addNewAdmin($name, $email, $password, $avatar, $role, $ins_id) {
-        $query = "INSERT INTO admin (name, email, password, avatar, role_type, ins_id, ins_datetime)
-                            VALUES (?,?,?,?,?,?, CURRENT_TIMESTAMP)";
-        $stmt = $this->connection->prepare($query);
-        $stmt->bind_param("ssssii", $name, $email, $password, $avatar, $role, $ins_id);
-        return $stmt->execute();
-    }
-
-    public function getAllAdminId($limit, $offset) {
-        $query = "SELECT id FROM admin LIMIT ? OFFSET ?";
-        $stmt = $this->connection->prepare($query);
-        $stmt->bind_param("ii",  $limit, $offset);
-        $stmt->execute();
-        return $stmt->get_result();
-    }
-
-    public function getFlaggedAdminId($flag, $limit, $offset) {
-        $query = "SELECT id FROM admin WHERE del_flag=? LIMIT ? OFFSET ?";
+    public function getMultipleFlaggedAdmin($limit, $offset, $flag = null) {
+        $query = "SELECT * FROM admin WHERE del_flag=? LIMIT ? OFFSET ?";
         $stmt = $this->connection->prepare($query);
         $stmt->bind_param("iii", $flag, $limit, $offset);
         $stmt->execute();
-        return $stmt->get_result();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-
-    public function getAdminDisplayInfo($id) {
-        $query = "SELECT id, name, email, role_type, ins_id, upd_id, del_flag FROM admin WHERE id='" . $id . "'";
-        $result = mysqli_query($this->connection, $query);
-        return mysqli_fetch_assoc($result);
+    public function getTotalFlaggedAdmin($flag) {
+        $query = "SELECT COUNT(*) AS total FROM admin WHERE del_flag=?";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bind_param("i", $flag);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc()['total'];
     }
 
-    public function getTotalAdmin() {
-        $query = "SELECT COUNT(*) AS total FROM admin";
-        $allRows = mysqli_query($this->connection, $query);
-        return mysqli_fetch_assoc($allRows)['total'];
+    public function addNewAdmin($insertData) {
+        try {
+            return $this->insertOneRow('admin', $insertData);
+        } catch (Exception $e) {
+            return "Error: " . $e->getMessage();
+        }
     }
 
-    public function getTotalFilteredAdmin($flag) {
-        $query = "SELECT COUNT(*) AS total FROM admin WHERE del_flag='". $flag ."'";
-        $allRows = mysqli_query($this->connection, $query);
-        return mysqli_fetch_assoc($allRows)['total'];
+    public function updateAdmin($pairs, $id) {
+        try {
+            return $this->updateMultipleValue('admin', $pairs, $id);
+        } catch (Exception $e) {
+            return "Error: " . $e->getMessage();
+        }
     }
+
+    public function softDeleteAdmin($id) {
+        return $this->updateAdmin(['del_flag' => 1], $id);
+    }
+
+    public function hardDeleteAdmin($id) {
+        return $this->deleteOneRow('admin', $id);
+    }
+
+    public function recoverDeletedAdmin($id) {
+        return $this->updateAdmin(['del_flag' => 0], $id);
+    }
+
 }

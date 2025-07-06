@@ -32,12 +32,20 @@ class systemlogin extends Controller {
 
         // Verify password
         $person = $this->model("AdminModel");
-        $row = mysqli_fetch_assoc($person->getAdminPassword($email));
-        $password = $_POST["password"];
+        $passwordHash = $person->getAdminPassword($email);
 
-        if ($row && password_verify($password, $row['password'])) {
+        if ($passwordHash && password_verify($_POST['password'], $passwordHash)) {
+            $admin = $this->model("AdminModel");
             $_SESSION['admin_logged_in'] = true;
             $_SESSION['admin_email'] = $email;
+            $_SESSION['admin_id'] = $admin->getAdminId($email);
+            $role = $admin->getAdminInfo($_SESSION['admin_id'])['role_type'];
+            if ($role == 1) {
+                $_SESSION['admin_role'] = 'Super Admin';
+            } elseif ($role == 2) {
+                $_SESSION['admin_role'] = 'Admin';
+            }
+
             header("Location: /system/dashboard");
             exit();
         } else {
