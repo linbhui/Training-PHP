@@ -1,19 +1,28 @@
 <div id="listContainer" class="container mt-4">
     <div id="account-status-container" class="mb-3 text-center">
-        <?php $currentStatus = $_GET['status'] ?? 'active'?>
-        <form action="/system/admin/list" method="get" class="btn-group" role="group">
-            <button type="submit" name="status" value="active" class="btn btn-outline-secondary
-            <?php echo $currentStatus === 'active' ? 'active' : ''?>">Active Accounts</button>
-            <button type="submit" name="status" value="deleted" class="btn btn-outline-secondary
-            <?php echo $currentStatus === 'deleted' ? 'active' : ''?>">Deleted Accounts</button>
-        </form>
+        <?php $currentStatus = $_GET['status'] ?? 'all';
+        ?>
+        <nav class="nav justify-content-center mt-4">
+            <a href="?<?php echo appendParams(['status' => 'all', 'page' => 1])?>"
+               class="nav-link <?= $currentStatus === 'all' ? 'active text-primary fw-bold' : 'text-secondary' ?>">
+                All Accounts
+            </a>
+            <a href="?<?php echo appendParams(['status' => 'active', 'page' => 1])?>"
+               class="nav-link <?= $currentStatus === 'active' ? 'active text-primary fw-bold' : 'text-secondary' ?>">
+                Active Accounts
+            </a>
+            <a href="?<?php echo appendParams(['status' => 'deleted', 'page' => 1])?>"
+               class="nav-link <?= $currentStatus === 'deleted' ? 'active text-primary fw-bold' : 'text-secondary' ?>">
+                Deleted Accounts
+            </a>
+        </nav>
     </div>
 
     <div id="delete-account">
 
     </div>
 
-    <div id="admin-table-list" class="table-responsive">
+    <div id="table-list" class="table-responsive">
         <form id="bulkAction" method="get">
             <table class="table table-hover align-middle table-bordered">
                 <thead class="table-light">
@@ -34,7 +43,6 @@
                 <tbody>
                 <?php for ($i = 0; $i < $data['total']; $i++): ?>
                     <?php
-                    $role = $data[$i]['role'] == 1 ? 'Super Admin' : 'Admin';
                     $updated_by = $data[$i]['updated_by'] ?? '';
                     $isDeleted = $data[$i]['status'] == 1;
                     $status = $isDeleted ? 'Deleted' : 'Active';
@@ -49,14 +57,14 @@
                         <td class="text-center"><?= $data[$i]['id'] ?></td>
                         <td><?= htmlspecialchars($data[$i]['name']) ?></td>
                         <td><?= htmlspecialchars($data[$i]['email']) ?></td>
-                        <td class="text-center"><?= $role ?></td>
+                        <td class="text-center"><?= $data[$i]['role'] ?></td>
                         <td class="text-center"><?= $data[$i]['created_by'] ?></td>
                         <td class="text-center"><?= $updated_by ?></td>
                         <td class="text-center <?= $color ?> fw-semibold"><?= $status ?></td>
                         <td class="text-center">
-                            <button formaction="/system/admin/<?= $action ?>"
+                            <button formaction="/system/<?= $data['controller'] ?>/<?= $action ?>"
                                     formmethod="get" name="id" value="<?= $data[$i]['id'] ?>"
-                                    class="btn btn-outline-<?= $isDeleted ? 'success' : 'info' ?>">
+                                    class="btn btn-outline-<?= $isDeleted ? 'warning' : 'secondary' ?>">
                                 <?= $buttonName ?>
                             </button>
                         </td>
@@ -65,14 +73,11 @@
                 </tbody>
             </table>
             <div class="d-flex gap-2 mt-3">
-                <button type="submit" class="btn btn-danger" formaction="/system/admin/delete">Delete</button>
+                <button type="submit" class="btn btn-danger" formaction="/system/<?= $data['controller'] ?>/delete">Delete</button>
                 <?php if(isset($_GET['status']) && $_GET['status'] === 'deleted'): ?>
-                    <button type="submit" class="btn btn-success" formaction="/system/admin/recover">Recover</button>
+                    <button type="submit" class="btn btn-warning" formaction="/system/<?= $data['controller'] ?>/recover">Recover</button>
                 <?php endif ?>
             </div>
-        </form>
-        <form id="action">
-
         </form>
     </div>
 
@@ -80,23 +85,42 @@
         <ul class="pagination justify-content-center mt-4" id="pagination">
             <?php $currentPage = $_GET['page'] ?? 1; ?>
             <li class="page-item">
-                <a class="page-link" href="?page=1" aria-label="First">&laquo;</a>
+                <a class="page-link"
+                   href="?<?php echo appendParams(['page' => 1])?>"
+                   aria-label="First">
+                    &laquo;
+                </a>
             </li>
             <li class="page-item">
-                <a class="page-link" href="?page=<?= max(1, $currentPage - 1) ?>" aria-label="Previous">&lsaquo;</a>
+                <a class="page-link"
+                   href="?<?php echo appendParams(['page' => max(1, $currentPage - 1)])?>"
+                   aria-label="Previous">
+                    &lsaquo;
+                </a>
             </li>
 
             <?php for ($i = 1; $i <= $data['totalPages']; $i++): ?>
                 <li class="page-item <?= ($i == $currentPage) ? 'active' : '' ?>">
-                    <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
+                    <a class="page-link"
+                       href="?<?php echo appendParams(['page' => $i])?>">
+                        <?= $i ?>
+                    </a>
                 </li>
             <?php endfor; ?>
 
             <li class="page-item">
-                <a class="page-link" href="?page=<?= min($data['totalPages'], $currentPage + 1) ?>" aria-label="Next">&rsaquo;</a>
+                <a class="page-link"
+                   href="?<?php echo appendParams(['page' => min($data['totalPages'], $currentPage + 1)])?>"
+                   aria-label="Next">
+                    &rsaquo;
+                </a>
             </li>
             <li class="page-item">
-                <a class="page-link" href="?page=<?= $data['totalPages'] ?>" aria-label="Last">&raquo;</a>
+                <a class="page-link"
+                   href="?<?php echo appendParams(['page' => $data['totalPages']])?>"
+                   aria-label="Last">
+                    &raquo;
+                </a>
             </li>
         </ul>
     </nav>

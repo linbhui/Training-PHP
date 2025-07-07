@@ -1,6 +1,8 @@
 <?php
-class systemlogin extends Controller {
-    function index() {
+class systemlogin extends Controller
+{
+    function index()
+    {
         if (isset($_SESSION['admin_logged_in'])) {
             header("Location: /system/dashboard");
             exit();
@@ -14,12 +16,19 @@ class systemlogin extends Controller {
                 $errors));
         }
     }
-    function authenticate() {
+
+    function authenticate()
+    {
         $email = $password = "";
         $errors = [];
+        $person = $this->model("AdminModel");
         // Validate email
-        if (!empty($_POST['email']) && filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
-            $email = $_POST['email'];
+        $emailInput = htmlspecialchars(trim($_POST['email']), ENT_QUOTES, 'UTF-8');
+        if (!empty($emailInput) && filter_var($emailInput, FILTER_VALIDATE_EMAIL)) {
+            if (!$person->checkExistEmail('admin', $emailInput)) {
+                $errors['emailErr'] = "Incorrect email/password";
+            }
+            $email = $emailInput;
         } else {
             $errors['emailErr'] = "Valid email address is required";
         }
@@ -31,15 +40,14 @@ class systemlogin extends Controller {
         }
 
         // Verify password
-        $person = $this->model("AdminModel");
-        $passwordHash = $person->getAdminPassword($email);
+        $passwordHash = $person->getPersonPassword('admin', $email);
 
         if ($passwordHash && password_verify($_POST['password'], $passwordHash)) {
             $admin = $this->model("AdminModel");
             $_SESSION['admin_logged_in'] = true;
             $_SESSION['admin_email'] = $email;
-            $_SESSION['admin_id'] = $admin->getAdminId($email);
-            $role = $admin->getAdminInfo($_SESSION['admin_id'])['role_type'];
+            $_SESSION['admin_id'] = $admin->getPersonId('admin', $email);
+            $role = $admin->getPersonInfo('admin', $_SESSION['admin_id'])['role_type'];
             if ($role == 1) {
                 $_SESSION['admin_role'] = 'Super Admin';
             } elseif ($role == 2) {

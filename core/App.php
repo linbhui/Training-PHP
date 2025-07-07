@@ -14,17 +14,17 @@ class App {
             if ($arr[0] == "system") {
                 $arr = array_slice($arr, 1);
                 if (isset($arr[0])) {
-                    if (file_exists("./controller/system/" . $arr[0] . ".php")) {
+                    if (file_exists("./app/controller/system/" . $arr[0] . ".php")) {
                         $this->module = "system";
                     }
                 }
             }
-            if (file_exists("./controller/" . $this->module . "/" . $arr[0] . ".php")) {
+            if (file_exists("./app/controller/" . $this->module . "/" . $arr[0] . ".php")) {
                 $this->controller = $arr[0];
                 unset($arr[0]);
             }
         }
-        require_once "./controller/" . $this->module . "/" . $this->controller . ".php";
+        require_once "./app/controller/" . $this->module . "/" . $this->controller . ".php";
         $className = $this->module . $this->controller;
         $this->controller = new $className;
 

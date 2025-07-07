@@ -1,8 +1,11 @@
 <?php
+require_once "./core/helpers.php";
 class GeneralModel extends Database {
     public const SQL_NOW = 'CURRENT_TIMESTAMP';
+
     // Retrieve data
-    protected function fetchOneValue($type, $column, $table, $whereCol, $whereVal) {
+    protected function fetchOneValue($type, $column, $table, $whereCol, $whereVal)
+    {
         $query = "SELECT $column FROM $table WHERE $whereCol = ?";
         $stmt = $this->connection->prepare($query);
         $stmt->bind_param($type, $whereVal);
@@ -11,7 +14,8 @@ class GeneralModel extends Database {
         return $result->fetch_assoc()[$column] ?? null;
     }
 
-    protected function fetchOneRow($type, $table, $whereCol, $whereVal) {
+    protected function fetchOneRow($type, $table, $whereCol, $whereVal)
+    {
         $query = "SELECT * FROM $table WHERE $whereCol = ?";
         $stmt = $this->connection->prepare($query);
         $stmt->bind_param($type, $whereVal);
@@ -20,19 +24,20 @@ class GeneralModel extends Database {
     }
 
     // Insert data
-    protected function insertOneRow($table, $pairs) {
+    protected function insertOneRow($table, $pairs)
+    {
         $cols = $placeholders = $refs = [];
         $bindTypes = '';
 
         // Filter types
-        foreach($pairs as $key => $value) {
+        foreach ($pairs as $key => $value) {
             $cols[] = $key;
             // Check datetime values
             if ($value === self::SQL_NOW) {
                 $placeholders[] = 'CURRENT_TIMESTAMP';
             } else {
                 $placeholders[] = '?';
-                $bindTypes .= $this->getBindType($value);
+                $bindTypes .= getBindType($value);
                 $refs[] = &$pairs[$key];
             }
         }
@@ -55,19 +60,20 @@ class GeneralModel extends Database {
     }
 
     // Update data
-    protected function updateMultipleValue($table, $pairs, $id) {
+    protected function updateMultipleValue($table, $pairs, $id)
+    {
         $placeholder = $bindTypes = $newData = '';
         $i = 0;
         $refs = [];
 
         // Filter types
-        foreach($pairs as $key => $value) {
+        foreach ($pairs as $key => $value) {
             // Check datetime values
             if ($value === self::SQL_NOW) {
                 $placeholder = 'CURRENT_TIMESTAMP';
             } else {
                 $placeholder = '?';
-                $bindTypes .= $this->getBindType($value);
+                $bindTypes .= getBindType($value);
                 $refs[] = &$pairs[$key];
             }
             $newData .= "$key = $placeholder";
@@ -95,17 +101,13 @@ class GeneralModel extends Database {
     }
 
     // Delete data
-    protected function deleteOneRow($table, $id) {
+    protected function deleteOneRow($table, $id)
+    {
         $query = "DELETE FROM $table WHERE id = ?";
         $stmt = $this->connection->prepare($query);
         $stmt->bind_param('i', $id);
         $stmt->execute();
         return true;
-    }
-
-    // Helper function
-    protected function getBindType($value) {
-        return is_int($value) ? 'i' : (is_float($value) ? 'd' : 's');
     }
 
 }

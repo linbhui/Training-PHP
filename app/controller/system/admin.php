@@ -1,42 +1,49 @@
 <?php
-class systemadmin extends Controller {
-    function checkPerm() {
+class systemadmin extends Controller
+{
+    function checkPerm()
+    {
         if (!isset($_SESSION['admin_logged_in'])) {
             header("Location: /system/login");
             exit();
         }
     }
-    function index() {
+
+    function index()
+    {
         $this->checkPerm();
-        $this->view ("Manage", ['area' => "Admin"]);
+        $this->view("Manage", [
+            'controller' => 'admin'
+        ]);
     }
 
-    function add() {
+    function add()
+    {
         $this->checkPerm();
 
         $name = $email = $password = $avatar = $role = "";
         $errors = [];
-        $target_dir = "public/img/";
+        $target_dir = "app/uploads/";
         $upload = true;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $person = $this->model("AdminModel");
 
             // Validate name
-            if (!empty(trim($_POST['name']))){
-                $name = $_POST['name'];
-            }    else {
+            if (!empty(trim($_POST['name']))) {
+                $name = htmlspecialchars(trim($_POST['name']), ENT_QUOTES, 'UTF-8');
+            } else {
                 $errors['nameErr'] = "Name is required";
             }
             // Validate email
             $tempEmail = trim($_POST['email']);
-            $row = $person->checkExistAdminEmail($tempEmail);
+            $row = $person->checkExistEmail('admin', $tempEmail);
 
-            if (empty($tempEmail) && !filter_var($tempEmail, FILTER_VALIDATE_EMAIL)) {
+            if (empty($tempEmail) || !filter_var($tempEmail, FILTER_VALIDATE_EMAIL)) {
                 $errors['emailErr'] = "Valid email address is required";
             } elseif ($row) {
                 $errors['emailErr'] = "Unavailable email address";
-            }else {
+            } else {
                 $email = $tempEmail;
             }
 
@@ -49,7 +56,7 @@ class systemadmin extends Controller {
 
             // Save the role
             if ($_POST['role'] == 1 || $_POST['role'] == 2) {
-                $role = (int) $_POST['role'];
+                $role = (int)$_POST['role'];
             } else {
                 $errors['roleErr'] = "Please select a role";
             }
@@ -72,15 +79,15 @@ class systemadmin extends Controller {
                 if (!move_uploaded_file($_FILES["avatar"]["tmp_name"], $target_file)) {
                     $errors['fileErr'] = "Could not upload file.";
                 } else {
-                    $avatar = $target_file;
+                    $avatar = pathinfo($target_file, PATHINFO_BASENAME);
                 }
             }
 
             // Display errors
             if (!empty($errors)) {
-                $this->view ("Manage", array_merge([
-                    'area' => "Admin",
-                    'function' => "Add"
+                $this->view("Manage", array_merge([
+                    'controller' => 'admin',
+                    'action' => "add",
                 ], $errors));
             } else {
                 // Add to the database
@@ -95,47 +102,46 @@ class systemadmin extends Controller {
                     'ins_datetime' => $newAdmin::SQL_NOW
                 ];
 
-                if ($newAdmin->addNewAdmin($insertData)) {
-                    $this->view ("Manage", [
-                        'area' => "Admin",
-                        'action' => "Success",
+                if ($newAdmin->addNewPerson('admin', $insertData)) {
+                    $this->view("Manage", [
+                        'controller' => 'admin',
+                        'result' => "Success",
                         'notif' => "Notification",
-                        'message' => "Admin added successfully: " . $email
+                        'message' => "Admin added successfully: " . htmlspecialchars($email ?? '')
                     ]);
                 }
             }
-
-
         } else {
-            $this->view ("Manage", [
-                'area' => "Admin",
-                'function' => "Add"
+            $this->view("Manage", [
+                'controller' => 'admin',
+                'action' => "add"
             ]);
         }
     }
 
-    function update() {
+    function update()
+    {
         $this->checkPerm();
 
         $person = $this->model("AdminModel");
         $account = $update = $error = [];
-        $target_dir = "public/img/";
+        $target_dir = "app/uploads/";
         $upload = true;
 
         if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
             // Retrieve account info
-            $row = $person->getAdminInfo($_GET['id']);
+            $row = $person->getPersonInfo('admin', $_GET['id']);
             $account['id'] = $row['id'];
             $account['name'] = $row['name'];
             $account['email'] = $row['email'];
             $account['role'] = $row['role_type'];
 
-            $this->view ("Manage", array_merge([
-                'area' => "Admin",
-                'function' => "Update"
+            $this->view("Manage", array_merge([
+                'controller' => 'admin',
+                'action' => "update"
             ], $account));
         } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $current = $person->getAdminInfo($_POST['updateId']);
+            $current = $person->getPersonInfo('admin', $_POST['updateId']);
 
             // Get posted info
             $account['id'] = $current['id'];
@@ -144,13 +150,14 @@ class systemadmin extends Controller {
             $account['role'] = $_POST['role'];
 
             // Update name
-            if (!empty(trim($_POST['name'])) && $_POST['name'] !== $current['name']){
-                $update['name'] = $_POST['name'];
+            $name = htmlspecialchars(trim($_POST['name']), ENT_QUOTES, 'UTF-8');
+            if (!empty($name) && $name !== $current['name']) {
+                $update['name'] = $name;
             }
 
             // Update email
-            $tempEmail = trim($_POST['email']);
-            $row = $person->checkExistAdminEmail($tempEmail);
+            $tempEmail = htmlspecialchars(trim($_POST['email']), ENT_QUOTES, 'UTF-8');
+            $row = $person->checkExistPersonEmail('admin', $tempEmail);
 
             if ($row && $row['id'] != $_POST['updateId']) {
                 $error['emailErr'] = "Unavailable email address";
@@ -161,7 +168,7 @@ class systemadmin extends Controller {
             // Update role
             if ($_POST['role'] == 1 || $_POST['role'] == 2) {
                 if ($_POST['role'] != $current['role_type']) {
-                    $update['role_type'] = (int) $_POST['role'];
+                    $update['role_type'] = (int)$_POST['role'];
                 }
             }
 
@@ -184,9 +191,9 @@ class systemadmin extends Controller {
             }
             // Display errors
             if (!empty($error)) {
-                $this->view ("Manage", array_merge([
-                    'area' => "Admin",
-                    'function' => "Update"
+                $this->view("Manage", array_merge([
+                    'controller' => 'admin',
+                    'action' => "update"
                 ], $account, $error));
 
             } else {
@@ -195,10 +202,10 @@ class systemadmin extends Controller {
                 $successMessage = empty($update) ? 'Nothing changed' : "Update successfully: $validUpdate";
                 $update['upd_id'] = $_SESSION['admin_id'];
                 $update['upd_datetime'] = $person::SQL_NOW;
-                if ($person->updateAdmin($update, $_POST['updateId'])) {
-                    $this->view ("Manage", [
-                        'area' => "Admin",
-                        'action' => "Success",
+                if ($person->updatePerson('admin', $update, $_POST['updateId'])) {
+                    $this->view("Manage", [
+                        'controller' => 'admin',
+                        'result' => "Success",
                         'notif' => "Notification",
                         'message' => $successMessage
                     ]);
@@ -206,16 +213,17 @@ class systemadmin extends Controller {
             }
 
         } else {
-            $this->view ("Manage", [
-                'area' => "Admin",
-                'action' => "Empty",
+            $this->view("Manage", [
+                'controller' => 'admin',
+                'result' => "Empty",
                 'notif' => "Notification",
                 'message' => "Empty page"
             ]);
         }
     }
 
-    function list() {
+    function list($searchby = null, $searchpattern = null)
+    {
         $this->checkPerm();
 
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -227,13 +235,16 @@ class systemadmin extends Controller {
             // Retrieve accounts for display
             $accounts = [];
             $admin = $this->model("AdminModel");
-            $all = $admin->getMultipleFlaggedAdmin($limit, $offset, 0);
-            $totalAccounts = $admin->getTotalFlaggedAdmin(0);
+            $all = $admin->getMultipleFlaggedPeople('admin', $limit, $offset, null, $searchby, $searchpattern);
+            $totalAccounts = $admin->getTotalFlaggedPeople('admin', $searchby, $searchpattern);
             $ids = [];
 
-            if (isset($_GET['status']) && $_GET['status'] === 'deleted') {
-                $all = $admin->getMultipleFlaggedAdmin($limit, $offset, 1);
-                $totalAccounts = $admin->getTotalFlaggedAdmin(1);
+            if (isset($_GET['status']) && $_GET['status'] === 'active') {
+                $all = $admin->getMultipleFlaggedPeople('admin', $limit, $offset, 0, $searchby, $searchpattern);
+                $totalAccounts = $admin->getTotalFlaggedPeople('admin', 0, $searchby, $searchpattern);
+            } elseif (isset($_GET['status']) && $_GET['status'] === 'deleted') {
+                $all = $admin->getMultipleFlaggedPeople('admin', $limit, $offset, 1, $searchby, $searchpattern);
+                $totalAccounts = $admin->getTotalFlaggedPeople('admin', 1, $searchby, $searchpattern);
             }
             $totalPages = ceil($totalAccounts / $limit);
 
@@ -242,32 +253,42 @@ class systemadmin extends Controller {
                 $accounts[$i]['id'] = $row['id'];
                 $accounts[$i]['name'] = $row['name'];
                 $accounts[$i]['email'] = $row['email'];
-                $accounts[$i]['role'] = $row['role_type'];
-                $accounts[$i]['created_by'] = $admin->getAdminInfo($row['ins_id'])['name'];
+                $accounts[$i]['role'] = $row['role_type'] == 1 ? 'Super Admin' : 'Admin';;
+                $accounts[$i]['created_by'] = $admin->getPersonInfo('admin', $row['ins_id'])['name'];
                 if ($row['upd_id']) {
-                    $accounts[$i]['updated_by'] = $admin->getAdminInfo($row['upd_id'])['name'];
+                    $accounts[$i]['updated_by'] = $admin->getPersonInfo('admin', $row['upd_id'])['name'];
                 }
                 $accounts[$i]['status'] = $row['del_flag'];
                 $i++;
             }
 
             // Display table list
-            $this->view ("Manage", array_merge([
-                'area' => "Admin",
-                'function' => "List",
+            $this->view("Manage", array_merge([
+                'controller' => 'admin',
+                'action' => 'list',
                 'total' => count($all),
-                'totalPages' => $totalPages
+                'totalPages' => $totalPages,
+                'search-term' => $searchpattern
             ], $accounts));
-
         }
     }
 
-    function search() {
+    function search()
+    {
         $this->checkPerm();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $searchby = isset($_GET['search-by']) ? $_GET['search-by'] : '';
+            $searchpattern = isset($_GET['search']) ? $_GET['search'] : '';
+            if (!empty($searchby) && !empty($searchpattern)) {
+                $this->list($searchby, $searchpattern);
+            }
+        }
 
     }
 
-    function delete() {
+    function delete()
+    {
         $this->checkPerm();
 
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -275,46 +296,46 @@ class systemadmin extends Controller {
             $deleteMessage = '';
 
             foreach ($_GET['ids'] as $id) {
-                $adminInfo = $admin->getAdminInfo($id);
+                $adminInfo = $admin->getPersonInfo('admin', $id);
                 if ($adminInfo['del_flag'] == 0) {
-                    $admin->softDeleteAdmin($id);
+                    $admin->softDeletePerson('admin', $id);
                     $deleteMessage .= "Temporary deleted " . $adminInfo['name'] . " successfully<br>";
                 } else {
-                    $admin->hardDeleteAdmin($id);
+                    $admin->hardDeletePerson('admin', $id);
                     $deleteMessage .= "Permanently deleted " . $adminInfo['name'] . " successfully<br>";
                 }
             }
 
-            $this->view ("Manage", [
-                'area' => "Admin",
-                'action' => "Success",
+            $this->view("Manage", [
+                'controller' => 'admin',
+                'result' => "Success",
                 'notif' => "Notification",
                 'message' => $deleteMessage
             ]);
         }
     }
 
-    function recover() {
+    function recover()
+    {
         $this->checkPerm();
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $admin = $this->model("AdminModel");
             $recoverMessage = '';
             if (isset($_GET['id'])) {
-                $admin->recoverDeletedAdmin($_GET['id']);
-                $name = $admin->getAdminInfo($_GET['id'])['name'];
+                $admin->recoverDeletedPerson('admin', $_GET['id']);
+                $name = $admin->getPersonInfo('admin', $_GET['id'])['name'];
                 $recoverMessage .= "Recovered " . $name . " successfully<br>";
-            }
-            else {
+            } else {
                 foreach ($_GET['ids'] as $id) {
-                    $admin->recoverDeletedAdmin($id);
-                    $name = $admin->getAdminInfo($id)['name'];
+                    $admin->recoverDeletedPerson('admin', $id);
+                    $name = $admin->getPersonInfo('admin', $id)['name'];
                     $recoverMessage .= "Recovered " . $name . " successfully<br>";
                 }
             }
 
-            $this->view ("Manage", [
-                'area' => "Admin",
-                'action' => "Success",
+            $this->view("Manage", [
+                'controller' => 'admin',
+                'result' => "Success",
                 'notif' => "Notification",
                 'message' => $recoverMessage
             ]);
