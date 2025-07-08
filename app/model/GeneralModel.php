@@ -1,6 +1,7 @@
 <?php
 require_once "./core/helpers.php";
-class GeneralModel extends Database {
+class GeneralModel extends Database
+{
     public const SQL_NOW = 'CURRENT_TIMESTAMP';
 
     // Retrieve data

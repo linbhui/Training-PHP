@@ -1,7 +1,7 @@
 <?php ?>
 <div id="formContainer">
     <h2 class="mb-4">Update Account</h2>
-    <form action="/system/admin/update" method="post" enctype="multipart/form-data" class="row g-3">
+    <form action="/system/<?= $data['controller']?>/update" method="post" enctype="multipart/form-data" class="row g-3">
         <input type="hidden" name="updateId" id="updateId" class="form-control" value="<?php echo $data['id'] ?>">
 
         <div class="col-md-6">
@@ -17,19 +17,21 @@
             <?php endif ?>
         </div>
 
-        <div class="col-md-6">
-            <label class="form-label d-block">Role:</label>
-            <div class="form-check form-check-inline">
-                <input type="radio" name="role" value="1" id="superAdmin" class="form-check-input"
-                <?php echo $data['role'] == 1 ? "checked" : "" ?>>
-                <label for="superAdmin" class="form-check-label">Super Admin</label>
+        <?php if ($data['controller'] === 'admin'): ?>
+            <div class="col-md-6">
+                <label class="form-label d-block">Role:</label>
+                <div class="form-check form-check-inline">
+                    <input type="radio" name="role" value="1" id="super-admin" class="form-check-input"
+                    <?php echo $data['role'] == 1 ? "checked" : "" ?>>
+                    <label for="superAdmin" class="form-check-label">Super Admin</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input type="radio" name="role" value="2" id="admin" class="form-check-input"
+                        <?php echo $data['role'] == 2 ? "checked" : "" ?>>
+                    <label for="admin" class="form-check-label">Admin</label>
+                </div>
             </div>
-            <div class="form-check form-check-inline">
-                <input type="radio" name="role" value="2" id="admin" class="form-check-input"
-                    <?php echo $data['role'] == 2 ? "checked" : "" ?>>
-                <label for="admin" class="form-check-label">Admin</label>
-            </div>
-        </div>
+        <?php endif ?>
 
         <div class="col-md-12">
             <label for="avatar" class="form-label">Upload Avatar:</label>
@@ -40,7 +42,7 @@
         </div>
 
         <div class="col-12 d-flex justify-content-between mt-3">
-            <a href="/system/admin/list" class="btn btn-secondary">Cancel</a>
+            <a href="/system/<?= $data['controller']?>/list" class="btn btn-secondary">Cancel</a>
             <button type="submit" class="btn btn-success">Update</button>
         </div>
     </form>

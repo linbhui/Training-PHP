@@ -1,6 +1,7 @@
 <?php
 require_once "GeneralModel.php";
-class AdminModel extends GeneralModel {
+class AdminModel extends GeneralModel
+{
     public function getPersonPassword($table, $email)
     {
         return $this->fetchOneValue("s", "password", $table, "email", $email);
@@ -108,7 +109,7 @@ class AdminModel extends GeneralModel {
 
     public function softDeletePerson($table, $id)
     {
-        return $this->updateAdmin($table, ['del_flag' => 1], $id);
+        return $this->updatePerson($table, ['del_flag' => 1], $id);
     }
 
     public function hardDeletePerson($table, $id)
@@ -118,7 +119,7 @@ class AdminModel extends GeneralModel {
 
     public function recoverDeletedPerson($table, $id)
     {
-        return $this->updateAdmin($table, ['del_flag' => 0], $id);
+        return $this->updatePerson($table, ['del_flag' => 0], $id);
     }
 
 }

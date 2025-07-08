@@ -23,7 +23,7 @@ class systemadmin extends Controller
 
         $name = $email = $password = $avatar = $role = "";
         $errors = [];
-        $target_dir = "app/uploads/";
+        $target_dir = "app/uploads/admin/";
         $upload = true;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -103,12 +103,9 @@ class systemadmin extends Controller
                 ];
 
                 if ($newAdmin->addNewPerson('admin', $insertData)) {
-                    $this->view("Manage", [
-                        'controller' => 'admin',
-                        'result' => "Success",
-                        'notif' => "Notification",
-                        'message' => "Admin added successfully: " . htmlspecialchars($email ?? '')
-                    ]);
+                    $successMessage = "Admin added successfully: " . htmlspecialchars($email);
+                    header("Location: /system/admin/list?" . appendParams(['result' => 1, 'message' => $successMessage]));
+                    exit();
                 }
             }
         } else {
@@ -125,7 +122,7 @@ class systemadmin extends Controller
 
         $person = $this->model("AdminModel");
         $account = $update = $error = [];
-        $target_dir = "app/uploads/";
+        $target_dir = "app/uploads/admin/";
         $upload = true;
 
         if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
@@ -157,11 +154,11 @@ class systemadmin extends Controller
 
             // Update email
             $tempEmail = htmlspecialchars(trim($_POST['email']), ENT_QUOTES, 'UTF-8');
-            $row = $person->checkExistPersonEmail('admin', $tempEmail);
+            $row = $person->checkExistEmail('admin', $tempEmail);
 
             if ($row && $row['id'] != $_POST['updateId']) {
                 $error['emailErr'] = "Unavailable email address";
-            } elseif (filter_var($tempEmail, FILTER_VALIDATE_EMAIL) && $_POST['email'] !== $current['email']) {
+            } elseif (filter_var($tempEmail, FILTER_VALIDATE_EMAIL) && $tempEmail !== $current['email']) {
                 $update['email'] = $tempEmail;
             }
 
@@ -203,22 +200,13 @@ class systemadmin extends Controller
                 $update['upd_id'] = $_SESSION['admin_id'];
                 $update['upd_datetime'] = $person::SQL_NOW;
                 if ($person->updatePerson('admin', $update, $_POST['updateId'])) {
-                    $this->view("Manage", [
-                        'controller' => 'admin',
-                        'result' => "Success",
-                        'notif' => "Notification",
-                        'message' => $successMessage
-                    ]);
+                    header("Location: /system/admin/list?" . appendParams(['result' => 1, 'message' => $successMessage]));
+                    exit();
                 }
             }
 
         } else {
-            $this->view("Manage", [
-                'controller' => 'admin',
-                'result' => "Empty",
-                'notif' => "Notification",
-                'message' => "Empty page"
-            ]);
+            $this->list();
         }
     }
 
@@ -254,9 +242,9 @@ class systemadmin extends Controller
                 $accounts[$i]['name'] = $row['name'];
                 $accounts[$i]['email'] = $row['email'];
                 $accounts[$i]['role'] = $row['role_type'] == 1 ? 'Super Admin' : 'Admin';;
-                $accounts[$i]['created_by'] = $admin->getPersonInfo('admin', $row['ins_id'])['name'];
+                $accounts[$i]['created_by'] = $admin->getPersonInfo('admin', $_SESSION['admin_id'])['name'];
                 if ($row['upd_id']) {
-                    $accounts[$i]['updated_by'] = $admin->getPersonInfo('admin', $row['upd_id'])['name'];
+                    $accounts[$i]['updated_by'] = $admin->getPersonInfo('admin', $_SESSION['admin_id'])['name'];
                 }
                 $accounts[$i]['status'] = $row['del_flag'];
                 $i++;
@@ -268,6 +256,7 @@ class systemadmin extends Controller
                 'action' => 'list',
                 'total' => count($all),
                 'totalPages' => $totalPages,
+                'dif-col' => 'role',
                 'search-term' => $searchpattern
             ], $accounts));
         }
@@ -297,21 +286,20 @@ class systemadmin extends Controller
 
             foreach ($_GET['ids'] as $id) {
                 $adminInfo = $admin->getPersonInfo('admin', $id);
+                $result = 1;
                 if ($adminInfo['del_flag'] == 0) {
                     $admin->softDeletePerson('admin', $id);
-                    $deleteMessage .= "Temporary deleted " . $adminInfo['name'] . " successfully<br>";
+                    $deleteMessage .= "Temporary deleted " . $adminInfo['name'] . ".<br>";
+                    $result = 2;
                 } else {
                     $admin->hardDeletePerson('admin', $id);
-                    $deleteMessage .= "Permanently deleted " . $adminInfo['name'] . " successfully<br>";
+                    $deleteMessage .= "Permanently deleted " . $adminInfo['name'] . ".<br>";
+                    $result = 0;
                 }
             }
 
-            $this->view("Manage", [
-                'controller' => 'admin',
-                'result' => "Success",
-                'notif' => "Notification",
-                'message' => $deleteMessage
-            ]);
+            header("Location: /system/admin/list?" . appendParams(['result' => $result, 'message' => $deleteMessage]));
+            exit();
         }
     }
 
@@ -321,24 +309,33 @@ class systemadmin extends Controller
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $admin = $this->model("AdminModel");
             $recoverMessage = '';
+            $result = 0;
             if (isset($_GET['id'])) {
-                $admin->recoverDeletedPerson('admin', $_GET['id']);
                 $name = $admin->getPersonInfo('admin', $_GET['id'])['name'];
-                $recoverMessage .= "Recovered " . $name . " successfully<br>";
+                if ($admin->getPersonInfo('admin', $_GET['id'])['del_flag'] === 1) {
+                    $admin->recoverDeletedPerson('admin', $_GET['id']);
+                    $recoverMessage .= "Recovered " . $name . ".<br>";
+                    $result = 1;
+                } else {
+                    $recoverMessage .= "No change to " . $name . ".<br>";
+                    $result = 2;
+                }
             } else {
                 foreach ($_GET['ids'] as $id) {
-                    $admin->recoverDeletedPerson('admin', $id);
                     $name = $admin->getPersonInfo('admin', $id)['name'];
-                    $recoverMessage .= "Recovered " . $name . " successfully<br>";
+                    if ($admin->getPersonInfo('admin', $id)['del_flag'] === 1) {
+                        $admin->recoverDeletedPerson('admin', $id);
+                        $recoverMessage .= "Recovered " . $name . ".<br>";
+                        $result = 1;
+                    } else {
+                        $recoverMessage .= "No change to " . $name . ".<br>";
+                        $result = 2;
+                    }
                 }
             }
 
-            $this->view("Manage", [
-                'controller' => 'admin',
-                'result' => "Success",
-                'notif' => "Notification",
-                'message' => $recoverMessage
-            ]);
+            header("Location: /system/admin/list?" . appendParams(['result' => $result, 'message' => $recoverMessage]));
+            exit();
         }
     }
 }

@@ -33,7 +33,7 @@
                     <th scope="col" class="text-center">ID</th>
                     <th scope="col">Full Name</th>
                     <th scope="col">Email</th>
-                    <th scope="col" class="text-center">Role</th>
+                    <th scope="col" class="text-center"><?= ucfirst($data['dif-col'])?></th>
                     <th scope="col" class="text-center">Created by</th>
                     <th scope="col" class="text-center">Updated by</th>
                     <th scope="col" class="text-center">Account status</th>
@@ -45,6 +45,7 @@
                     <?php
                     $updated_by = $data[$i]['updated_by'] ?? '';
                     $isDeleted = $data[$i]['status'] == 1;
+                    $specialColor = $data[$i][$data['dif-col']] === 'Online' ? 'text-info' : 'text-secondary';
                     $status = $isDeleted ? 'Deleted' : 'Active';
                     $color = $isDeleted ? 'text-danger' : 'text-success';
                     $action = $isDeleted ? 'recover' : 'update';
@@ -57,7 +58,7 @@
                         <td class="text-center"><?= $data[$i]['id'] ?></td>
                         <td><?= htmlspecialchars($data[$i]['name']) ?></td>
                         <td><?= htmlspecialchars($data[$i]['email']) ?></td>
-                        <td class="text-center"><?= $data[$i]['role'] ?></td>
+                        <td class="text-center <?= $specialColor ?> fw-semibold"><?= $data[$i][$data['dif-col']] ?></td>
                         <td class="text-center"><?= $data[$i]['created_by'] ?></td>
                         <td class="text-center"><?= $updated_by ?></td>
                         <td class="text-center <?= $color ?> fw-semibold"><?= $status ?></td>
@@ -74,7 +75,7 @@
             </table>
             <div class="d-flex gap-2 mt-3">
                 <button type="submit" class="btn btn-danger" formaction="/system/<?= $data['controller'] ?>/delete">Delete</button>
-                <?php if(isset($_GET['status']) && $_GET['status'] === 'deleted'): ?>
+                <?php if((isset($_GET['status']) && $_GET['status'] !== 'active') || !isset($_GET['status'])): ?>
                     <button type="submit" class="btn btn-warning" formaction="/system/<?= $data['controller'] ?>/recover">Recover</button>
                 <?php endif ?>
             </div>

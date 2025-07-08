@@ -1,11 +1,13 @@
 <?php
-class App {
+class App
+{
     protected $module = "";
     protected $controller = "printError";
     protected $action = "index";
     protected $params = [];
 
-    function __construct() {
+    function __construct()
+    {
         $arr = $this->urlProcess();
 
          // Set controller
@@ -47,7 +49,8 @@ class App {
 
     }
 
-    function urlProcess() {
+    function urlProcess()
+    {
         if (isset($_GET["url"])) {
             return explode("/", filter_var(trim($_GET["url"], "/")));
         }

@@ -65,18 +65,16 @@
             </form>
         </div>
     </div>
-
     <div id="content-area" class="mt-4">
-        <?php if (isset($data['notif'])): ?>
-            <div id="message-notif"
-                 class="alert alert-<?= $data['result'] == 'Success' ? 'info' : 'danger' ?> text-center">
-                <?php require_once "./app/view/content/" . $data['notif'] . ".php"; ?>
-            </div>
-        <?php endif ?>
-
         <?php if (isset($data['action'])): ?>
             <div id="content-page" class="card shadow-sm border-0">
                 <div class="card-body">
+                    <?php if (isset($_GET['result'])): ?>
+                        <div id="message-notif"
+                             class="alert alert-<?= $_GET['result'] == 1 ? 'info' : ($_GET['result'] == 0 ? 'danger' : 'warning') ?> text-center">
+                            <p class="h5 fw-semibold lh-base"><?= $_GET['message'] ?></p>
+                        </div>
+                    <?php endif ?>
                     <?php require_once "./app/view/content/" . ucfirst($data['action']) . ".php"; ?>
                 </div>
             </div>
