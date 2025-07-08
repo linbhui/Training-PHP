@@ -8,8 +8,11 @@ class systemdashboard extends Controller
             exit();
         }
 
+        $admin = $this->model("AdminModel");
+        $name = $admin->getPersonInfo('admin', $_SESSION['admin_id'])['name'];
         $this->view("Dashboard", [
-            'role' => $_SESSION['admin_role']
+            'role' => $_SESSION['admin_role'],
+            'name' => $name
         ]);
     }
 }

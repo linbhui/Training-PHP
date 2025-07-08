@@ -12,12 +12,24 @@
 <body class="bg-light">
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-9">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <h1 class="">Profile</h1>
-
-
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body card-body d-flex flex-column align-items-center">
+                    <h1 class="mb-3">Profile</h1>
+                    <img src="<?= $data['avatar']?>"
+                         alt="Avatar"
+                         class="rounded-circle mb-3"
+                         style="width: 240px; height: 240px; object-fit: cover"
+                    >
+                    <div class="w-100" style="max-width: 350px;">
+                        <ul class="list-unstyled mb-4 lh-lg text-start">
+                            <li class="mb-2" style="font-size: 24px"><strong>ID: </strong><?= $data['id']?></li>
+                            <li class="mb-2" style="font-size: 24px"><strong>Name: </strong><?= $data['name']?></li>
+                            <li class="mb-2" style="font-size: 24px"><strong>Email: </strong><?= $data['email']?></li>
+                            <li class="mb-2" style="font-size: 24px"><strong>Status: </strong><?= $data['status']?></li>
+                            <li class="mb-2" style="font-size: 24px"><strong>Created By: </strong><?= $data['ins_name']?></li>
+                        </ul>
+                    </div>
                     <form action="/logout" method="get">
                         <button type="submit" class="btn btn-outline-danger btn-lg">Log Out</button>
                     </form>

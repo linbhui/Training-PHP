@@ -7,8 +7,16 @@ class profile extends Controller {
             exit();
         }
 
-        $this->view("Profile", [
-
-        ]);
+        $userInfo = [];
+        $user = $this->model("UserModel");
+        $admin = $this->model("AdminModel");
+        $userRow = $user->getUserInfo($_SESSION['user_id']);
+        $userInfo['id'] = $userRow['id'];
+        $userInfo['name'] = $userRow['name'];
+        $userInfo['email'] = $userRow['email'];
+        $userInfo['avatar'] = "./app/uploads/user/" . $userRow['avatar'];
+        $userInfo['status'] = $userRow['status'] == 1 ? "Online" : "Offline";
+        $userInfo['ins_name'] = $admin->getPersonInfo('admin', $userRow['ins_id'])['name'];
+        $this->view("Profile", $userInfo);
     }
 }
