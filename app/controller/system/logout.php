@@ -9,8 +9,6 @@ class systemlogout extends Controller
 
             header("Location: /system/login");
             exit();
-        } else {
-            echo "you're not even logged out to login bruv";
         }
     }
 }
