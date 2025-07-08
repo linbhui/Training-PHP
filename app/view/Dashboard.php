@@ -15,7 +15,7 @@
         <div class="col-md-8">
             <div class="card shadow-sm">
                 <div class="card-body text-center">
-                    <h1 class="card-title mb-3">Welcome to your Admin Dashboard!</h1>
+                    <h1 class="card-title mb-3">Welcome to your dashboard, <?=$data=['name']?>!</h1>
                     <h5 class="card-subtitle mb-4 text-muted">You are:
                         <span class="badge <?= $_SESSION['admin_role'] === 'Super Admin' ? 'bg-danger' : 'bg-primary' ?>">
                             <?= $_SESSION['admin_role']; ?>
