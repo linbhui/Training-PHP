@@ -230,7 +230,7 @@ class systemuser extends Controller
                 $accounts[$i]['id'] = $row['id'];
                 $accounts[$i]['name'] = $row['name'];
                 $accounts[$i]['email'] = $row['email'];
-                $accounts[$i]['current'] = $row['status'] == 1 ? 'Offline' : 'Online';;
+                $accounts[$i]['current'] = $row['status'] == 1 ? 'Online' : 'Offline';
                 $accounts[$i]['created_by'] = $user->getPersonInfo('admin', $_SESSION['admin_id'])['name'];
                 if ($row['upd_id']) {
                     $accounts[$i]['updated_by'] = $user->getPersonInfo('admin', $_SESSION['admin_id'])['name'];

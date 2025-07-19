@@ -5,7 +5,7 @@ class GeneralModel extends Database
     public const SQL_NOW = 'CURRENT_TIMESTAMP';
 
     // Retrieve data
-    protected function fetchOneValue($type, $column, $table, $whereCol, $whereVal)
+    protected function fetchOneValue($table, $column, $whereCol, $whereVal, $type)
     {
         $query = "SELECT $column FROM $table WHERE $whereCol = ?";
         $stmt = $this->connection->prepare($query);
@@ -15,7 +15,7 @@ class GeneralModel extends Database
         return $result->fetch_assoc()[$column] ?? null;
     }
 
-    protected function fetchOneRow($type, $table, $whereCol, $whereVal)
+    protected function fetchOneRow($table, $whereCol, $whereVal, $type)
     {
         $query = "SELECT * FROM $table WHERE $whereCol = ?";
         $stmt = $this->connection->prepare($query);
@@ -61,7 +61,7 @@ class GeneralModel extends Database
     }
 
     // Update data
-    protected function updateMultipleValue($table, $pairs, $id)
+    protected function updateMultipleValue($table, $id, $pairs)
     {
         $placeholder = $bindTypes = $newData = '';
         $i = 0;

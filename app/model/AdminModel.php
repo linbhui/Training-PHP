@@ -2,25 +2,27 @@
 require_once "GeneralModel.php";
 class AdminModel extends GeneralModel
 {
+    public function checkExistEmail($table, $email)
+    {
+        if ($this->fetchOneRow($table, "email", $email, "s")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
     public function getPersonPassword($table, $email)
     {
-        return $this->fetchOneValue("s", "password", $table, "email", $email);
+        return $this->fetchOneValue($table, "password", "email", $email, "s");
     }
 
     public function getPersonId($table, $email)
     {
-        return (int)$this->fetchOneValue("s", "id", $table, "email", $email);
+        return (int)$this->fetchOneValue($table, "id", "email", $email, "s");
     }
-
-    public function checkExistEmail($table, $email)
-    {
-        return $this->fetchOneRow("s", $table, "email", $email);
-    }
-
 
     public function getPersonInfo($table, $id)
     {
-        return $this->fetchOneRow("i", $table, "id", $id);
+        return $this->fetchOneRow($table, "id", $id, "i");
     }
 
     public function getMultipleFlaggedPeople($table, $limit, $offset, $flag = null, $searchby = null, $searchpattern = null)
@@ -98,10 +100,10 @@ class AdminModel extends GeneralModel
         }
     }
 
-    public function updatePerson($table, $pairs, $id)
+    public function updatePerson($table, $id, $pairs)
     {
         try {
-            return $this->updateMultipleValue($table, $pairs, $id);
+            return $this->updateMultipleValue($table, $id, $pairs);
         } catch (Exception $e) {
             return "Error: " . $e->getMessage();
         }
@@ -109,7 +111,7 @@ class AdminModel extends GeneralModel
 
     public function softDeletePerson($table, $id)
     {
-        return $this->updatePerson($table, ['del_flag' => 1], $id);
+        return $this->updatePerson($table, $id, ['del_flag' => 1]);
     }
 
     public function hardDeletePerson($table, $id)
@@ -119,7 +121,7 @@ class AdminModel extends GeneralModel
 
     public function recoverDeletedPerson($table, $id)
     {
-        return $this->updatePerson($table, ['del_flag' => 0], $id);
+        return $this->updatePerson($table, $id, ['del_flag' => 0]);
     }
 
 }
