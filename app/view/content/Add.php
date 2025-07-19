@@ -1,7 +1,7 @@
 <?php ?>
 <div id="formContainer">
     <h2 class="mb-4">Account Information</h2>
-    <form action="/system/admin/add" method="post" enctype="multipart/form-data" class="row g-3">
+    <form action="/system/<?= $data['controller']?>/add" method="post" enctype="multipart/form-data" class="row g-3">
         <div class="col-md-6">
             <label for="name" class="form-label">Name:</label>
             <input type="text" name="name" id="name" class="form-control" placeholder="Full Name" required>
@@ -26,20 +26,22 @@
             <?php endif ?>
         </div>
 
-        <div class="col-md-6">
-            <label class="form-label d-block">Role:</label>
-            <div class="form-check form-check-inline">
-                <input type="radio" name="role" value="super-admin" id="superAdmin" class="form-check-input" required>
-                <label for="superAdmin" class="form-check-label">Super Admin</label>
+        <?php if ($data['controller'] === 'admin'): ?>
+            <div class="col-md-6">
+                <label class="form-label d-block">Role:</label>
+                <div class="form-check form-check-inline">
+                    <input type="radio" name="role" value="1" id="superAdmin" class="form-check-input" required>
+                    <label for="superAdmin" class="form-check-label">Super Admin</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input type="radio" name="role" value="2" id="admin" class="form-check-input">
+                    <label for="admin" class="form-check-label">Admin</label>
+                </div>
+                <?php if (!empty($data['roleErr'])): ?>
+                    <small class="text-danger"><?= $data['roleErr'] ?></small>
+                <?php endif ?>
             </div>
-            <div class="form-check form-check-inline">
-                <input type="radio" name="role" value="admin" id="admin" class="form-check-input">
-                <label for="admin" class="form-check-label">Admin</label>
-            </div>
-            <?php if (!empty($data['roleErr'])): ?>
-                <small class="text-danger"><?= $data['roleErr'] ?></small>
-            <?php endif ?>
-        </div>
+        <?php endif ?>
 
         <div class="col-md-12">
             <label for="avatar" class="form-label">Upload Avatar:</label>
@@ -50,8 +52,8 @@
         </div>
 
         <div class="col-12 d-flex justify-content-between mt-3">
-            <a href="/system/admin/list" class="btn btn-secondary">Cancel</a>
-            <button type="submit" class="btn btn-primary">Create</button>
+            <a href="/system/<?= $data['controller']?>/list" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-success">Create</button>
         </div>
     </form>
 </div>

@@ -13,5 +13,6 @@ if (isset($_SESSION['last_regenerated'])) {
 require_once "./core/App.php";
 require_once "./core/Controller.php";
 require_once "./core/Database.php";
+require_once "./core/helpers.php";
 
 $myApp = new App();
